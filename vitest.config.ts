@@ -2,7 +2,7 @@ import process from 'node:process'
 import { defineConfig } from 'vitest/config'
 import { webdriverio } from './src/index'
 
-const browser = process.env.BROWSER || 'chrome'
+const browser = process.env.BROWSER as 'chrome' | 'firefox' | 'safari' || 'chrome'
 
 // In CI the `setup-webdriverio` action exports explicit binary paths so
 // WebDriverIO does not auto-download a mismatched driver. Locally these are

@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 // One assertion per WebDriverIO user-event command (src/commands/*). These are
-// the highest-value smoke targets: each maps a Vitest user-event to a specific
+// the highest-value targets: each maps a Vitest user-event to a specific
 // WebDriver Actions API call and is exactly what regresses on a wdio bump.
 describe('user events', () => {
   it('click / dblClick', async () => {

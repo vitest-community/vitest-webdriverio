@@ -39,15 +39,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      # The provider source relies on provider-internal Vitest exports that only
-      # fully resolve when the package is installed alongside a matching Vitest.
-      # The JS build is the contract; typecheck is informational. See CONTRIBUTING.md.
       - name: Typecheck
         run: pnpm typecheck
-        continue-on-error: true
 
   test-browser:
-    name: Smoke (${{ matrix.os }})
+    name: Test (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -77,5 +73,5 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Smoke tests (webdriverio)
-        run: pnpm test:smoke
+      - name: Test (webdriverio)
+        run: pnpm test

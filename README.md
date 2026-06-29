@@ -48,13 +48,9 @@ Then run Vitest in the browser mode:
 npx vitest --browser
 ```
 
-## Compatibility
-
-This provider builds against the published `vitest` and `@vitest/browser` packages and tracks the same major version line. The `peerDependencies` range is kept deliberately tight because the browser-provider API is still marked experimental upstream. When upgrading Vitest, upgrade this package to the matching version.
-
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for local development, the build setup, the smoke test suite, and the release process.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for local development, the build setup, the test suite, and the release process.
 
 ## License
 

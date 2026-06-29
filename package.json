@@ -51,7 +51,6 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
-    "test:smoke": "vitest run",
     "release": "tsx scripts/release.ts",
     "publish-ci": "tsx scripts/publish-ci.ts"
   },
