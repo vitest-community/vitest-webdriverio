@@ -24,6 +24,7 @@ import {
   triggerCommandWithTrace,
 } from '@vitest/browser/locators'
 import { page, server, utils } from 'vitest/browser'
+// @ts-expect-error __internal is not exposed in types to avoid type pollution
 import { __INTERNAL } from 'vitest/internal/browser'
 
 class WebdriverIOLocator extends Locator {
@@ -203,7 +204,7 @@ page.extend({
   },
 })
 
-__INTERNAL._createLocator = selector => new WebdriverIOLocator(selector)
+__INTERNAL._createLocator = (selector: string) => new WebdriverIOLocator(selector)
 
 function getWebdriverioSelectOptions(element: Element, value: string | string[] | HTMLElement[] | HTMLElement | Locator | Locator[]) {
   const options = [...element.querySelectorAll('option')] as HTMLOptionElement[]

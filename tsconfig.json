@@ -4,6 +4,10 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "paths": {
+      "@vitest/browser-webdriverio": ["./src/index.ts"],
+      "@vitest/browser-webdriverio/context": ["./context.d.ts"]
+    },
     "types": ["node"],
     "strict": true,
     "declaration": true,
@@ -13,6 +17,6 @@
     "isolatedDeclarations": true,
     "skipLibCheck": true
   },
-  "include": ["src"],
+  "include": ["src", "test"],
   "exclude": ["dist", "node_modules"]
 }

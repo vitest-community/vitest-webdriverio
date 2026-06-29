@@ -11,6 +11,7 @@ import type {
   BrowserProviderOption,
   CDPSession,
   TestProject,
+  Vitest,
 } from 'vitest/node'
 import type { ClickOptions, DragAndDropOptions, MoveToOptions, remote } from 'webdriverio'
 import { defineBrowserProvider } from '@vitest/browser'
@@ -40,6 +41,8 @@ export function webdriverio(options: WebdriverProviderOptions = {}): BrowserProv
   })
 }
 
+const timeoutIncreased = new WeakSet<Vitest>()
+
 export class WebdriverBrowserProvider implements BrowserProvider {
   public name = 'webdriverio' as const
   public supportsParallelism: boolean = false
@@ -68,8 +71,8 @@ export class WebdriverBrowserProvider implements BrowserProvider {
     options: WebdriverProviderOptions,
   ) {
     // increase shutdown timeout because WDIO takes some extra time to kill the driver
-    if (!project.vitest.state._data.timeoutIncreased) {
-      project.vitest.state._data.timeoutIncreased = true
+    if (!timeoutIncreased.has(project.vitest)) {
+      timeoutIncreased.add(project.vitest)
       project.vitest.config.teardownTimeout += 10_000
     }
 
