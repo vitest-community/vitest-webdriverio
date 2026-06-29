@@ -1,0 +1,15 @@
+shellEmulator: true
+
+trustPolicy: no-downgrade
+
+# The WebDriverIO ecosystem dropped npm provenance, which trips the
+# no-downgrade trust policy. Mirror the exclusions used in the Vitest monorepo.
+# https://github.com/webdriverio/webdriverio/issues/14887
+trustPolicyExclude:
+  - '@wdio/repl@9.16.2'
+  - undici-types@6.21.0
+
+allowBuilds:
+  edgedriver: false
+  esbuild: true
+  geckodriver: false

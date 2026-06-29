@@ -1,0 +1,10 @@
+node_modules
+dist
+.types
+coverage
+*.log
+.DS_Store
+.idea
+.eslintcache
+test/**/__screenshots__
+.vitest
