@@ -6,6 +6,7 @@ import { mkdir, rm } from 'node:fs/promises'
 import { normalize as platformNormalize } from 'node:path'
 import { resolveScreenshotPath } from '@vitest/browser'
 import { dirname, normalize, resolve } from 'pathe'
+import { assertBrowserApiWrite, assertBrowserFileAccess } from './permissions'
 
 interface ScreenshotCommandOptions extends Omit<ScreenshotOptions, 'element' | 'mask'> {
   element?: SerializedLocator
@@ -42,6 +43,9 @@ export async function takeScreenshot(
 
   if (options.save) {
     savePath = normalize(path)
+
+    assertBrowserApiWrite(context.project, savePath)
+    assertBrowserFileAccess(context.project, savePath)
 
     await mkdir(dirname(savePath), { recursive: true })
   }
