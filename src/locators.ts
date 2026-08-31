@@ -48,7 +48,7 @@ class WebdriverIOLocator extends Locator {
   }
 
   // waits for the element on the client and addresses the command by its exact selector
-  protected override async resolveTarget(options?: ActionOptions): Promise<SerializedLocator> {
+  public override async resolveTarget(options?: ActionOptions): Promise<SerializedLocator> {
     const element = await this.findElement(options)
     return { selector: convertElementToCssSelector(element), locator: this.asLocator() }
   }
