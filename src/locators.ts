@@ -3,7 +3,6 @@ import type {
   SerializedLocator,
 } from '@vitest/browser/locators'
 import type {
-  LocatorScreenshotOptions,
   UserEventClickOptions,
   UserEventDragAndDropOptions,
   UserEventHoverOptions,
@@ -88,15 +87,6 @@ class WebdriverIOLocator extends Locator {
     return super.dropTo(target, processDragAndDropOptions(options))
   }
 
-  public override screenshot(options?: LocatorScreenshotOptions): Promise<any> {
-    return ensureAwaited(async () => {
-      const element = await this.findElement(options)
-      // screenshots serialize the locator through its `selector` getter,
-      // so give them a locator that addresses the resolved element directly
-      return new ElementWebdriverIOLocator(convertElementToCssSelector(element), this._pwSelector, element).screenshot(options)
-    })
-  }
-
   // playwright doesn't enforce a single element in upload
   // public override async upload(): Promise<void>
 
@@ -106,32 +96,6 @@ class WebdriverIOLocator extends Locator {
 
   protected elementLocator(element: Element) {
     return new WebdriverIOLocator(selectorEngine.generateSelectorSimple(element), element)
-  }
-}
-
-const kElementLocator = Symbol.for('$$vitest:locator-resolved')
-
-class ElementWebdriverIOLocator extends Locator {
-  public [kElementLocator] = true
-
-  constructor(
-    private _cssSelector: string,
-    protected _pwSelector: string,
-    protected _container: Element,
-  ) {
-    super()
-  }
-
-  override get selector() {
-    return this._cssSelector
-  }
-
-  protected locator(_selector: string): Locator {
-    throw new Error(`should not be called`)
-  }
-
-  protected elementLocator(_element: Element): Locator {
-    throw new Error(`should not be called`)
   }
 }
 
