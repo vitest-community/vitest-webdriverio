@@ -1,12 +1,12 @@
 import type {
-  LocatorScreenshotOptions,
-  UserEventClearOptions,
+  ActionOptions,
+  SerializedLocator,
+} from '@vitest/browser/locators'
+import type {
   UserEventClickOptions,
   UserEventDragAndDropOptions,
-  UserEventFillOptions,
   UserEventHoverOptions,
   UserEventSelectOptions,
-  UserEventWheelOptions,
 } from 'vitest/browser'
 import {
   convertElementToCssSelector,
@@ -21,7 +21,6 @@ import {
   getIframeScale,
   Locator,
   selectorEngine,
-  triggerCommandWithTrace,
 } from '@vitest/browser/locators'
 import { page, server, utils } from 'vitest/browser'
 // @ts-expect-error __internal is not exposed in types to avoid type pollution
@@ -30,16 +29,6 @@ import { __INTERNAL } from 'vitest/internal/browser'
 class WebdriverIOLocator extends Locator {
   constructor(protected _pwSelector: string, protected _container?: Element) {
     super()
-  }
-
-  // This exists to avoid calling `this.elements` in `this.selector`'s getter in interactive actions
-  private withElement(
-    element: Element,
-    error: Error | undefined,
-    pwSelector: string,
-  ) {
-    const cssSelector = convertElementToCssSelector(element)
-    return new ElementWebdriverIOLocator(cssSelector, error, pwSelector, element)
   }
 
   override get selector(): string {
@@ -58,83 +47,44 @@ class WebdriverIOLocator extends Locator {
     return (hasShadowRoot ? '>>>' : '') + newSelectors.join(', ')
   }
 
+  // waits for the element on the client and addresses the command by its exact selector
+  public override async resolveTarget(options?: ActionOptions): Promise<SerializedLocator> {
+    const element = await this.findElement(options)
+    return { selector: convertElementToCssSelector(element), locator: this.asLocator() }
+  }
+
   public override click(options?: UserEventClickOptions): Promise<void> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).click(processClickOptions(options))
-    })
+    return super.click(processClickOptions(options))
   }
 
   public override dblClick(options?: UserEventClickOptions): Promise<void> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).dblClick(processClickOptions(options))
-    })
+    return super.dblClick(processClickOptions(options))
   }
 
   public override tripleClick(options?: UserEventClickOptions): Promise<void> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).tripleClick(processClickOptions(options))
-    })
+    return super.tripleClick(processClickOptions(options))
   }
 
-  public selectOptions(
+  public override selectOptions(
     value: HTMLElement | HTMLElement[] | Locator | Locator[] | string | string[],
     options?: UserEventSelectOptions,
   ): Promise<void> {
-    return ensureAwaited(async (error) => {
+    return ensureAwaited(async () => {
       const element = await this.findElement(options)
       const values = getWebdriverioSelectOptions(element, value)
-      const selector = convertElementToCssSelector(element)
-      const locator = this.asLocator()
-      return triggerCommandWithTrace<void>({
-        name: '__vitest_selectOptions',
-        arguments: [{ selector, locator }, values, options],
-        errorSource: error,
-      })
+      const target = { selector: convertElementToCssSelector(element), locator: this.asLocator() }
+      return this.action('__vitest_selectOptions', [values], options, target)
     })
   }
 
   public override hover(options?: UserEventHoverOptions): Promise<void> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).hover(processHoverOptions(options))
-    })
+    return super.hover(processHoverOptions(options))
   }
 
   public override dropTo(target: Locator, options?: UserEventDragAndDropOptions): Promise<void> {
     // playwright doesn't enforce a single element, it selects the first one,
     // so we just follow the behavior
     return super.dropTo(target, processDragAndDropOptions(options))
-  }
-
-  public override wheel(options: UserEventWheelOptions): Promise<void> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).wheel(options)
-    })
-  }
-
-  public override clear(options?: UserEventClearOptions): Promise<void> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).clear(options)
-    })
-  }
-
-  public override fill(text: string, options?: UserEventFillOptions): Promise<void> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).fill(text, options)
-    })
-  }
-
-  public override screenshot(options?: LocatorScreenshotOptions): Promise<any> {
-    return ensureAwaited(async (error) => {
-      const element = await this.findElement(options)
-      return this.withElement(element, error, this._pwSelector).screenshot(options)
-    })
   }
 
   // playwright doesn't enforce a single element in upload
@@ -146,33 +96,6 @@ class WebdriverIOLocator extends Locator {
 
   protected elementLocator(element: Element) {
     return new WebdriverIOLocator(selectorEngine.generateSelectorSimple(element), element)
-  }
-}
-
-const kElementLocator = Symbol.for('$$vitest:locator-resolved')
-
-class ElementWebdriverIOLocator extends Locator {
-  public [kElementLocator] = true
-
-  constructor(
-    private _cssSelector: string,
-    protected _errorSource: Error | undefined,
-    protected _pwSelector: string,
-    protected _container: Element,
-  ) {
-    super()
-  }
-
-  override get selector() {
-    return this._cssSelector
-  }
-
-  protected locator(_selector: string): Locator {
-    throw new Error(`should not be called`)
-  }
-
-  protected elementLocator(_element: Element): Locator {
-    throw new Error(`should not be called`)
   }
 }
 
