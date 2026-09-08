@@ -42,7 +42,7 @@
     "dist"
   ],
   "engines": {
-    "node": "^20.0.0 || ^22.0.0 || >=24.0.0"
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
     "build": "premove dist && rolldown -c",
@@ -55,7 +55,7 @@
     "publish-ci": "tsx scripts/publish-ci.ts"
   },
   "peerDependencies": {
-    "vitest": "^5.0.0-beta.5",
+    "vitest": "^5.0.0",
     "webdriverio": "*"
   },
   "peerDependenciesMeta": {
@@ -64,7 +64,7 @@
     }
   },
   "dependencies": {
-    "@vitest/browser": "^5.0.0-beta.5"
+    "@vitest/browser": "^5.0.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.7.3",
@@ -80,7 +80,7 @@
     "semver": "^7.8.5",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3",
-    "vitest": "5.0.0-beta.5",
+    "vitest": "^5.0.0",
     "webdriverio": "^9.20.0",
     "zx": "^8.8.5"
   }
