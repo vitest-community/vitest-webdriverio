@@ -31,7 +31,7 @@ These resolve against whichever Vitest version the consumer installs. When upgra
 
 ## Developing against an unreleased Vitest
 
-`package.json` depends on the published `vitest` / `@vitest/browser` (a tight `^5.0.0-beta.x` range). To test against an unreleased Vitest from a local `vitest` checkout, add an override to [`pnpm-workspace.yaml`](./pnpm-workspace.yaml) pointing at your local build, then `pnpm install`:
+`package.json` depends on the published `vitest` / `@vitest/browser` (a `^5.0.0` range). To test against an unreleased Vitest from a local `vitest` checkout, add an override to [`pnpm-workspace.yaml`](./pnpm-workspace.yaml) pointing at your local build, then `pnpm install`:
 
 ```yaml
 overrides:
@@ -39,7 +39,7 @@ overrides:
   '@vitest/browser': link:../vitest/packages/browser
 ```
 
-Do not commit the override. It is only for local development before a matching beta is published.
+Do not commit the override. It is only for local development before a matching version is published.
 
 ## Tests
 
@@ -64,3 +64,14 @@ Releases mirror the Vitest pipeline:
 2. Merge the PR. The **Publish Package** workflow detects the release commit, builds, publishes to npm via trusted publishing, pushes the `vX.Y.Z` tag, and generates a GitHub release with `changelogithub`.
 3. Approve the Release workflow in GitHub Actions.
 4. Approve the staged package on npm.
+
+### Releasing older versions
+
+Older major versions are maintained on `vX` branches (for example, [`v4`](https://github.com/vitest-community/vitest-webdriverio/tree/v4) for Vitest 4). Land fixes there with a PR against that branch, then release:
+
+1. Run the **Prepare Publish** workflow with `target_branch` set to the maintenance branch (for example, `v4`) and `release: patch`. It opens a `chore: release vX.Y.Z` PR against that branch.
+2. Merge the PR into the maintenance branch, not into `main`. The **Publish Package** workflow also runs on `v*` branches.
+3. Approve the Release workflow in GitHub Actions, then approve the staged package on npm.
+4. `changelogithub` marks every new GitHub release as "Latest". Mark the newest release from `main` as "Latest" again on the [releases page](https://github.com/vitest-community/vitest-webdriverio/releases).
+
+Because the version is lower than the `latest` dist-tag on npm, [`scripts/publish-ci.ts`](./scripts/publish-ci.ts) publishes it under the upper-case branch name as the dist-tag (for example, `V4`), the same as the core Vitest packages.
