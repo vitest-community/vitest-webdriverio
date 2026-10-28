@@ -3,8 +3,8 @@ import type { UserEventCommand } from './utils'
 
 export const dragAndDrop: UserEventCommand<UserEvent['dragAndDrop']> = async (
   context,
-  { selector: source },
-  { selector: target },
+  source,
+  target,
   options_,
 ) => {
   const $source = context.browser.$(source)

@@ -1,17 +1,14 @@
-import type { SerializedLocator } from '@vitest/browser'
 import type { ScreenshotOptions } from 'vitest/browser'
 import type { BrowserCommandContext } from 'vitest/node'
 import crypto from 'node:crypto'
 import { mkdir, rm } from 'node:fs/promises'
 import { normalize as platformNormalize } from 'node:path'
-import { resolveScreenshotPath } from '@vitest/browser'
+import { assertBrowserApiWrite, assertBrowserFileAccess, resolveScreenshotPath } from '@vitest/browser'
 import { dirname, normalize, resolve } from 'pathe'
-import { assertBrowserApiWrite, assertBrowserFileAccess } from './permissions'
 
 interface ScreenshotCommandOptions extends Omit<ScreenshotOptions, 'element' | 'mask'> {
-  element?: SerializedLocator
-  mask?: readonly SerializedLocator[]
-  target?: 'element' | 'page'
+  element?: string
+  mask?: readonly string[]
 }
 
 /**
@@ -57,22 +54,20 @@ export async function takeScreenshot(
     await mkdir(context.project.tmpDir, { recursive: true })
   }
 
+  const page = context.browser
+  const element = !options.element
+    ? await page.$('body')
+    : await page.$(`${options.element}`)
+
   // webdriverio expects the path to contain the extension and only works with PNG files
   const savePathWithExtension = savePath.endsWith('.png') ? savePath : `${savePath}.png`
 
   // there seems to be a bug in webdriverio, `X:/` gets appended to cwd, so we convert to `X:\`
-  const normalizedSavePath = platformNormalize(savePathWithExtension)
-  // `browser.saveScreenshot` captures the top-level page for `expect(page)`;
-  // element and plain `page.screenshot()` calls keep the existing body fallback.
-  const buffer = options.target === 'page'
-    ? await context.browser.saveScreenshot(normalizedSavePath)
-    : await context.browser.$(options.element?.selector ?? 'body').saveScreenshot(
-        normalizedSavePath,
-      )
-
+  const buffer = await element.saveScreenshot(
+    platformNormalize(savePathWithExtension),
+  )
   if (!options.save) {
     await rm(savePathWithExtension, { force: true })
   }
-
   return { buffer, path }
 }

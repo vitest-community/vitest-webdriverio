@@ -2,6 +2,9 @@
 
 Thanks for helping maintain the WebdriverIO provider for Vitest browser mode.
 
+> [!NOTE]
+> This is the `v4` maintenance branch. It supports Vitest 4 and only receives security and compatibility fixes. The source was ported from the [`vitest-dev/vitest` `v4` branch](https://github.com/vitest-dev/vitest/tree/9bd8d464e/packages/browser-webdriverio) as released in `4.1.11`. New development happens on [`main`](https://github.com/vitest-community/vitest-webdriverio/tree/main).
+
 ## Setup
 
 ```sh
@@ -21,7 +24,8 @@ This package implements the (currently experimental) browser-provider contract e
 A few couplings are intentional and accepted as compatibility risks rather than worked around:
 
 - the provider augments `vitest/node` and `vitest/browser` via `declare module`;
-- the locator engine assigns `__INTERNAL._createLocator` from `vitest/internal/browser`. That export is stripped from the published type declarations, so the import carries a `@ts-expect-error`.
+- the locator engine assigns `__INTERNAL._createLocator` from `vitest/internal/browser`. That export is stripped from the published type declarations, so the import carries a `@ts-expect-error`;
+- the provider reads the internal `vitest.state._data` to raise `teardownTimeout` only once per config. It is also stripped from the published types, so it is accessed through a cast.
 
 These resolve against whichever Vitest version the consumer installs. When upgrading the supported Vitest version, bump this package to match and re-run the test suite.
 
@@ -31,7 +35,7 @@ These resolve against whichever Vitest version the consumer installs. When upgra
 
 ## Developing against an unreleased Vitest
 
-`package.json` depends on the published `vitest` / `@vitest/browser` (a tight `^5.0.0-beta.x` range). To test against an unreleased Vitest from a local `vitest` checkout, add an override to [`pnpm-workspace.yaml`](./pnpm-workspace.yaml) pointing at your local build, then `pnpm install`:
+`package.json` depends on the published `vitest` / `@vitest/browser` (a `^4.1.x` range). To test against an unreleased Vitest from a local `vitest` checkout, add an override to [`pnpm-workspace.yaml`](./pnpm-workspace.yaml) pointing at your local build, then `pnpm install`:
 
 ```yaml
 overrides:
@@ -39,7 +43,7 @@ overrides:
   '@vitest/browser': link:../vitest/packages/browser
 ```
 
-Do not commit the override. It is only for local development before a matching beta is published.
+Do not commit the override. It is only for local development before a matching patch is published.
 
 ## Tests
 
@@ -60,7 +64,9 @@ In CI the [`setup-webdriverio`](./.github/actions/setup-webdriverio) action inst
 
 Releases mirror the Vitest pipeline:
 
-1. Run the **Prepare Publish** workflow (`workflow_dispatch`). It bumps the version with `bumpp` and opens a `chore: release vX.Y.Z` PR.
-2. Merge the PR. The **Publish Package** workflow detects the release commit, builds, publishes to npm via trusted publishing, pushes the `vX.Y.Z` tag, and generates a GitHub release with `changelogithub`.
+1. Run the **Prepare Publish** workflow (`workflow_dispatch`) with `target_branch: v4` and `release: patch`. It bumps the version with `bumpp` and opens a `chore: release vX.Y.Z` PR against `v4`.
+2. Merge the PR into `v4`. The **Publish Package** workflow detects the release commit, builds, publishes to npm via trusted publishing, pushes the `vX.Y.Z` tag, and generates a GitHub release with `changelogithub`.
 3. Approve the Release workflow in GitHub Actions.
 4. Approve the staged package on npm.
+
+Because a v4 version is lower than the `latest` dist-tag on npm, [`scripts/publish-ci.ts`](./scripts/publish-ci.ts) publishes it under the `V4` dist-tag (the upper-case branch name), the same as the core Vitest packages.

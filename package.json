@@ -1,7 +1,7 @@
 {
   "name": "@vitest/browser-webdriverio",
   "type": "module",
-  "version": "5.0.0",
+  "version": "4.1.11",
   "packageManager": "pnpm@11.6.0",
   "description": "Browser running for Vitest using webdriverio",
   "license": "MIT",
@@ -42,7 +42,7 @@
     "dist"
   ],
   "engines": {
-    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
+    "node": "^20.0.0 || ^22.0.0 || >=24.0.0"
   },
   "scripts": {
     "build": "premove dist && rolldown -c",
@@ -55,7 +55,7 @@
     "publish-ci": "tsx scripts/publish-ci.ts"
   },
   "peerDependencies": {
-    "vitest": "^5.0.0",
+    "vitest": "^4.1.12",
     "webdriverio": "*"
   },
   "peerDependenciesMeta": {
@@ -64,7 +64,7 @@
     }
   },
   "dependencies": {
-    "@vitest/browser": "^5.0.0"
+    "@vitest/browser": "^4.1.12"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.7.3",
@@ -80,7 +80,7 @@
     "semver": "^7.8.5",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3",
-    "vitest": "^5.0.0",
+    "vitest": "^4.1.12",
     "webdriverio": "^9.20.0",
     "zx": "^8.8.5"
   }

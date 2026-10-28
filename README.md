@@ -9,6 +9,9 @@ We recommend using this package if you are already using webdriverio in your pro
 > [!NOTE]
 > This is a **community-maintained** provider. It lives in the [`vitest-community`](https://github.com/vitest-community) organization and is released independently from the core Vitest packages. Issues and pull requests for the webdriverio provider should be opened here, not on the main `vitest-dev/vitest` repository.
 
+> [!IMPORTANT]
+> This is the `v4` maintenance branch for Vitest 4. It only receives security and compatibility fixes. For the current version, see the [`main`](https://github.com/vitest-community/vitest-webdriverio/tree/main) branch.
+
 ## Installation
 
 Install the package with your favorite package manager:

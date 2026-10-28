@@ -11,7 +11,6 @@ import type {
   BrowserProviderOption,
   CDPSession,
   TestProject,
-  Vitest,
 } from 'vitest/node'
 import type { ClickOptions, DragAndDropOptions, MoveToOptions, remote } from 'webdriverio'
 import { defineBrowserProvider } from '@vitest/browser'
@@ -41,8 +40,6 @@ export function webdriverio(options: WebdriverProviderOptions = {}): BrowserProv
   })
 }
 
-const timeoutIncreased = new WeakSet<Vitest>()
-
 export class WebdriverBrowserProvider implements BrowserProvider {
   public name = 'webdriverio' as const
   public supportsParallelism: boolean = false
@@ -71,8 +68,10 @@ export class WebdriverBrowserProvider implements BrowserProvider {
     options: WebdriverProviderOptions,
   ) {
     // increase shutdown timeout because WDIO takes some extra time to kill the driver
-    if (!timeoutIncreased.has(project.vitest)) {
-      timeoutIncreased.add(project.vitest)
+    // `_data` is internal and is stripped from the published types
+    const stateData: { timeoutIncreased: boolean } = (project.vitest.state as any)._data
+    if (!stateData.timeoutIncreased) {
+      stateData.timeoutIncreased = true
       project.vitest.config.teardownTimeout += 10_000
     }
 
@@ -193,18 +192,9 @@ export class WebdriverBrowserProvider implements BrowserProvider {
     const options = this.project.config.browser
     const browser = this.browserName
     if (browser !== 'safari' && options.headless) {
-      const [key, defaultArgs] = headlessMap[browser]
+      const [key, args] = headlessMap[browser]
       const currentValues = (this.options?.capabilities as any)?.[key] || {}
-      const currentArgs: string[] = currentValues.args || []
-
-      const hasEnableGpu = browser === 'chrome' && (currentArgs.includes('--enable-gpu') || currentArgs.includes('enable-gpu'))
-
-      const argsToAdd = hasEnableGpu
-        ? defaultArgs.filter(arg => arg !== 'disable-gpu')
-        : defaultArgs
-
-      const newArgs = [...currentArgs, ...argsToAdd]
-
+      const newArgs = [...(currentValues.args || []), ...args]
       capabilities[key] = { ...currentValues, args: newArgs as any }
     }
 
