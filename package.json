@@ -1,7 +1,7 @@
 {
   "name": "@vitest/browser-webdriverio",
   "type": "module",
-  "version": "4.1.11",
+  "version": "4.1.12",
   "packageManager": "pnpm@11.6.0",
   "description": "Browser running for Vitest using webdriverio",
   "license": "MIT",
