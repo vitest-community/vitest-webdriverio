@@ -58,6 +58,9 @@ export class WebdriverBrowserProvider implements BrowserProvider {
   private iframeSwitched = false
   private topLevelContext: string | undefined
 
+  private pageContext: WebdriverIO.BrowsingContext | null = null
+  private frameContext: WebdriverIO.BrowsingContext | null = null
+
   public initScripts: string[] = [
     resolve(distRoot, 'locators.js'),
   ]
@@ -92,28 +95,45 @@ export class WebdriverBrowserProvider implements BrowserProvider {
 
   async switchToTestFrame(): Promise<void> {
     const browser = this.browser!
-    // support wdio@9
-    if (browser.switchFrame) {
+
+    if (this.pageContext) {
+      this.frameContext = await this.pageContext.frame({
+        selector: 'iframe[data-vitest]',
+      })
+    }
+    else if (typeof browser.switchFrame === 'function') {
       await browser.switchFrame(browser.$('iframe[data-vitest]'))
     }
-    else {
+    else if (
+      'switchToFrame' in browser
+      && typeof browser.switchToFrame === 'function'
+    ) {
       const iframe = await browser.findElement(
         'css selector',
         'iframe[data-vitest]',
       )
       await browser.switchToFrame(iframe)
     }
+    else {
+      throw new Error('Frame switching is not supported.')
+    }
+
     this.iframeSwitched = true
   }
 
   async switchToMainFrame(): Promise<void> {
-    const page = this.browser!
-    if (page.switchFrame) {
-      await page.switchFrame(null)
+    const browser = this.browser!
+
+    if (this.pageContext) {
+      this.frameContext = null
+    }
+    else if (typeof browser.switchFrame === 'function') {
+      await browser.switchFrame(null)
     }
     else {
-      await page.switchToParentFrame()
+      await browser.switchToParentFrame()
     }
+
     this.iframeSwitched = false
   }
 
@@ -137,11 +157,15 @@ export class WebdriverBrowserProvider implements BrowserProvider {
   }
 
   getCommandsContext(): {
-    browser: WebdriverIO.Browser | null
+    browser: WebdriverIO.Browser | WebdriverIO.BrowsingContext
   } {
-    return {
-      browser: this.browser,
+    const browser = this.frameContext ?? this.pageContext ?? this.browser
+
+    if (!browser) {
+      throw new Error('The browser has no open pages.')
     }
+
+    return { browser }
   }
 
   async openBrowser(): Promise<WebdriverIO.Browser> {
@@ -249,9 +273,22 @@ export class WebdriverBrowserProvider implements BrowserProvider {
   async openPage(sessionId: string, url: string): Promise<void> {
     await this._throwIfClosing('creating the browser')
     debug?.('[%s][%s] creating the browser page for %s', sessionId, this.browserName, url)
+
     const browserInstance = await this.openBrowser()
     debug?.('[%s][%s] browser page is created, opening %s', sessionId, this.browserName, url)
-    await browserInstance.url(url)
+
+    const page = await browserInstance.url(url)
+
+    this.pageContext
+      = browserInstance.isBidi
+        && page != null
+        && typeof page === 'object'
+        && 'frame' in page
+        && typeof page.frame === 'function'
+        ? page as WebdriverIO.BrowsingContext
+        : null
+    this.frameContext = null
+
     this.topLevelContext = await browserInstance.getWindowHandle()
     await this._throwIfClosing('opening the url')
   }
@@ -277,6 +314,10 @@ export class WebdriverBrowserProvider implements BrowserProvider {
     await browser.deleteSession()
     browser.sessionId = undefined as unknown as string
     this.browser = null
+    this.pageContext = null
+    this.frameContext = null
+    this.topLevelContext = undefined
+    this.iframeSwitched = false
   }
 
   async getCDPSession(_sessionId: string): Promise<CDPSession> {
@@ -329,7 +370,7 @@ interface WebdriverCDPSession {
 
 declare module 'vitest/node' {
   export interface BrowserCommandContext {
-    browser: WebdriverIO.Browser
+    browser: WebdriverIO.Browser | WebdriverIO.BrowsingContext
   }
 
   export interface _BrowserNames {
