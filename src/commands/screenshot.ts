@@ -65,7 +65,7 @@ export async function takeScreenshot(
   // `browser.saveScreenshot` captures the top-level page for `expect(page)`;
   // element and plain `page.screenshot()` calls keep the existing body fallback.
   const buffer = options.target === 'page'
-    ? await context.browser.saveScreenshot(normalizedSavePath)
+    ? await (context.browser as WebdriverIO.Browser).saveScreenshot(normalizedSavePath)
     : await context.browser.$(options.element?.selector ?? 'body').saveScreenshot(
         normalizedSavePath,
       )

@@ -26,12 +26,27 @@ export const upload: UserEventCommand<(element: SerializedLocator, files: Array<
     }
   }
 
-  const element = context.browser.$(selector)
+  const element = await context.browser.$(selector)
 
-  for (const file of files) {
+  const filepaths = files.map((file) => {
     const filepath = resolve(root, file as string)
     assertBrowserFileAccess(context.project, filepath)
-    const remoteFilePath = await context.browser.uploadFile(filepath)
-    await element.addValue(remoteFilePath)
+    return filepath
+  })
+
+  if (typeof element.setFiles === 'function') {
+    await element.setFiles(filepaths)
+  }
+  else if (
+    'uploadFile' in context.browser
+    && typeof context.browser.uploadFile === 'function'
+  ) {
+    for (const filepath of filepaths) {
+      const remoteFilePath = await context.browser.uploadFile(filepath)
+      await element.addValue(remoteFilePath)
+    }
+  }
+  else {
+    throw new Error('File upload is not supported by this WebdriverIO session.')
   }
 }

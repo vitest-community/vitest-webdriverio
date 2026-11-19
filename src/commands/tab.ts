@@ -7,5 +7,7 @@ export const tab: UserEventCommand<UserEvent['tab']> = async (
   options = {},
 ) => {
   const browser = context.browser
-  await browser.keys(options.shift === true ? [Key.Shift, Key.Tab] : [Key.Tab])
+  await (browser as WebdriverIO.Browser).keys(
+    options.shift === true ? [Key.Shift, Key.Tab] : [Key.Tab],
+  )
 }
